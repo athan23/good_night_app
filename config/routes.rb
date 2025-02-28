@@ -1,6 +1,6 @@
 Rails.application.routes.draw do
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
-
-  # Defines the root path route ("/")
-  # root "articles#index"
+  resources :sleep_records, only: [:index] do
+    post "clock_in", on: :collection
+    post "clock_out", on: :collection
+  end
 end
