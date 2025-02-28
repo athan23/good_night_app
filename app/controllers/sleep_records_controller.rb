@@ -16,7 +16,12 @@ class SleepRecordsController < ApplicationController
   end
   
   def clock_out
-    
+    # User can only clock out if there is an active sleep record
+    record = @user.sleep_records.where(clock_out: nil).first
+    return render json: { error: "No active sleep record found" }, status: :bad_request unless record
+
+    record.update(clock_out: Time.current)
+    render json: record
   end
 
   private
