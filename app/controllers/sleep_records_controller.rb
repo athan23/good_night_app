@@ -2,7 +2,8 @@ class SleepRecordsController < ApplicationController
   before_action :set_user
 
   def index
-    
+    records = @user.sleep_records.order(:created_at)
+    render json: records
   end
 
   def clock_in
