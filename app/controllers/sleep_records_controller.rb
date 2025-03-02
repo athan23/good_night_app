@@ -25,6 +25,21 @@ class SleepRecordsController < ApplicationController
     render json: record
   end
 
+  def feed
+    followee_ids = @user.followees.pluck(:id)
+
+    # Get sleep records of a user's All following users' sleep records.
+    # Sorted based on the duration of sleep length
+    sleep_records = SleepRecord
+                      .where(user_id: followee_ids)
+                      .where.not(clock_out: nil)
+                      .where("clock_out >= ?", 7.days.ago)
+                      .sort_by{ |r| r.clock_out - r.clock_in }
+                      .reverse
+
+    render json: sleep_records
+  end
+
   private
 
   def set_user
