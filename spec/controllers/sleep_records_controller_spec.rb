@@ -1,6 +1,8 @@
 require 'rails_helper'
 
 RSpec.describe SleepRecordsController, type: :controller do
+  render_views
+
   let(:user) { create(:user) }
 
   describe "POST #clock_in" do
@@ -46,15 +48,20 @@ RSpec.describe SleepRecordsController, type: :controller do
   end
 
   describe "GET #index" do
-    it "returns all sleep records of a user" do
-      older_record = create(:sleep_record, user: user, created_at: 2.days.ago)
-      newer_record = create(:sleep_record, user: user, created_at: 1.day.ago)
+    before do
+      create_list(:sleep_record, 35, user: user, clock_in: 8.hours.ago, clock_out: 1.hour.ago)
+    end
 
-      get :index, params: { user_id: user.id }
+    it "returns all sleep records of a user" do
+      get :index, params: { format: :json, user_id: user.id, page: 3 }
 
       json_response = JSON.parse(response.body)
-      expect(json_response.first["id"]).to eq(older_record.id)
-      expect(json_response.last["id"]).to eq(newer_record.id)
+      expect(response).to have_http_status(:ok)
+      expect(json_response["records"].size).to be <= Pagy::DEFAULT[:limit]
+      expect(json_response["pagination"]).to have_key("total_pages")
+      expect(json_response["pagination"]).to have_key("current_page")
+      expect(json_response["pagination"]).to have_key("next_page")
+      expect(json_response["pagination"]).to have_key("prev_page")
     end
   end
 
@@ -78,7 +85,7 @@ RSpec.describe SleepRecordsController, type: :controller do
       expect(json_response.size).to eq(2)
 
       sleep_lengths = json_response.map { |r| r["clock_out"].to_time - r["clock_in"].to_time }
-      expect(sleep_lengths).to eq(sleep_lengths.sort.reverse) # Ensure longest sleep first
+      expect(sleep_lengths).to eq(sleep_lengths.sort.reverse)
     end
   end
 end
