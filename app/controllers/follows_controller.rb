@@ -10,6 +10,14 @@ class FollowsController < ApplicationController
     render json: { message: "Followed successfully" }
   end
 
+  def unfollow
+    follow = @follower.followed_users.find_by(followee: @followee)
+    return render json: { error: "Not following this user" }, status: :bad_request unless follow
+
+    follow.destroy
+    render json: { message: "Unfollowed successfully" }
+  end
+
   private
 
   def set_users
