@@ -4,7 +4,10 @@ class SleepRecordsController < ApplicationController
   before_action :set_user
 
   def index
-    @pagy, @sleep_records = pagy(@user.sleep_records.order(:created_at))
+    cache_key = "user_#{params[:user_id]}_sleep_records_page_#{params[:page]}"
+    @pagy, @sleep_records = Rails.cache.fetch(cache_key, expires_in: 10.minutes) do
+      pagy(@user.sleep_records.order(:created_at))
+    end
   end
 
   def clock_in
