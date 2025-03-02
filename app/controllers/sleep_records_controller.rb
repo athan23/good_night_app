@@ -1,9 +1,11 @@
 class SleepRecordsController < ApplicationController
+  include Pagy::Backend
+
   before_action :set_user
 
   def index
     records = @user.sleep_records.order(:created_at)
-    render json: records
+    render json: { records: sleep_records, pagination: pagy_metadata(pagy) }
   end
 
   def clock_in
@@ -28,7 +30,7 @@ class SleepRecordsController < ApplicationController
   def feed
     followee_ids = @user.followees.pluck(:id)
 
-    # Get sleep records of a user's All following users' sleep records.
+    # Get sleep records of a user's All following users' sleep records from the previous week.
     # Sorted based on the duration of sleep length
     sleep_records = SleepRecord
                       .where(user_id: followee_ids)
