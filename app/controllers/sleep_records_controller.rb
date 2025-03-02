@@ -4,7 +4,7 @@ class SleepRecordsController < ApplicationController
   before_action :set_user
 
   def index
-    records = @user.sleep_records.order(:created_at)
+    pagy, sleep_records = pagy(user.sleep_records.order(:created_at))
     render json: { records: sleep_records, pagination: pagy_metadata(pagy) }
   end
 
