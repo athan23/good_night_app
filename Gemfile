@@ -13,7 +13,7 @@ gem "sqlite3", "~> 1.4"
 gem "puma", "~> 5.0"
 
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
-# gem "jbuilder"
+gem "jbuilder"
 
 # Use Redis adapter to run Action Cable in production
 # gem "redis", "~> 4.0"
@@ -44,6 +44,7 @@ group :development, :test do
   gem 'rspec-rails', '~> 7.0.0'
   gem 'factory_bot_rails'
   gem 'faker'
+  gem 'byebug'
 end
 
 group :development do
