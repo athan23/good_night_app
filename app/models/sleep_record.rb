@@ -1,6 +1,8 @@
 class SleepRecord < ApplicationRecord
   belongs_to :user
 
+  # Add a callback in SleepRecord to clear cache when a record is created or updated
+  # This ensures cached data stays fresh when users log sleep or update records
   after_commit :clear_cache
 
   private
