@@ -68,24 +68,37 @@ RSpec.describe SleepRecordsController, type: :controller do
   describe "GET #feed" do
     let(:followee1) { create(:user) }
     let(:followee2) { create(:user) }
+    let(:followee3) { create(:user) }
 
     before do
       create(:follow, follower: user, followee: followee1)
       create(:follow, follower: user, followee: followee2)
+      create(:follow, follower: user, followee: followee3)
 
-      create(:sleep_record, user: followee1, clock_in: 8.hours.ago, clock_out: 1.hour.ago)
-      create(:sleep_record, user: followee2, clock_in: 7.hours.ago, clock_out: 2.hours.ago)
+      create(:sleep_record, user: followee1, clock_in: 33.hours.ago, clock_out: 25.hours.ago)
+      create(:sleep_record, user: followee2, clock_in: 34.hours.ago, clock_out: 27.hours.ago)
+      create(:sleep_record, user: followee3, clock_in: 7.hours.ago, clock_out: 3.hours.ago)
+      create(:sleep_record, user: followee1, clock_in: 6.hours.ago, clock_out: 2.hours.ago)
+      create(:sleep_record, user: followee2, clock_in: 12.hours.ago, clock_out: 4.hours.ago)
     end
 
     it "returns sleep records of followed users from the past week sorted by sleep length" do
-      get :feed, params: { user_id: user.id }
+      get :feed, params: { format: :json, user_id: user.id, page: 1 }
 
       json_response = JSON.parse(response.body)
       expect(response).to have_http_status(:ok)
-      expect(json_response.size).to eq(2)
 
-      sleep_lengths = json_response.map { |r| r["clock_out"].to_time - r["clock_in"].to_time }
-      expect(sleep_lengths).to eq(sleep_lengths.sort.reverse)
+      records = json_response["records"]
+      expect(records.size).to be <= Pagy::DEFAULT[:limit]
+
+      # Check if sleep records are sorted by sleep duration
+      durations = records.map { |r| r["duration"].to_i }
+      expect(durations).to eq(durations.sort.reverse)
+
+      expect(json_response["pagination"]).to have_key("total_pages")
+      expect(json_response["pagination"]).to have_key("current_page")
+      expect(json_response["pagination"]).to have_key("next_page")
+      expect(json_response["pagination"]).to have_key("prev_page")
     end
   end
 end

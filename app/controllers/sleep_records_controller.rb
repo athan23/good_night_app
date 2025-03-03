@@ -30,18 +30,23 @@ class SleepRecordsController < ApplicationController
   end
 
   def feed
-    followee_ids = @user.followees.pluck(:id)
+    cache_key = "user_#{params[:user_id]}_sleep_records_feed_page_#{params[:page]}"
 
-    # Get sleep records of a user's All following users' sleep records from the previous week.
-    # Sorted based on the duration of sleep length
-    sleep_records = SleepRecord
-                      .where(user_id: followee_ids)
-                      .where.not(clock_out: nil)
-                      .where("clock_out >= ?", 7.days.ago)
-                      .sort_by{ |r| r.clock_out - r.clock_in }
-                      .reverse
+    sleep_record_table = SleepRecord.arel_table
+    sleep_duration = sleep_record_table[:clock_out] - sleep_record_table[:clock_in]
 
-    render json: sleep_records
+    @pagy, @sleep_records = Rails.cache.fetch(cache_key, expires_in: 10.minutes) do
+      followee_ids = @user.followees.pluck(:id)
+
+      sorted_sleep_records = SleepRecord
+                              .select("*, (clock_out - clock_in) AS sleep_duration")
+                              .where(user_id: followee_ids)
+                              .where("clock_out IS NOT NULL")
+                              .where("clock_out >= ?", 7.days.ago)
+                              .order(duration: :desc)
+
+      pagy(sorted_sleep_records)
+    end
   end
 
   private
