@@ -32,17 +32,17 @@ class SleepRecordsController < ApplicationController
   def feed
     cache_key = "user_#{params[:user_id]}_sleep_records_feed_page_#{params[:page]}"
 
-    sleep_record_table = SleepRecord.arel_table
-    sleep_duration = sleep_record_table[:clock_out] - sleep_record_table[:clock_in]
+    # To get sleep records from previous week
+    start_of_last_week = 1.week.ago.beginning_of_week
+    end_of_last_week = 1.week.ago.end_of_week
 
     @pagy, @sleep_records = Rails.cache.fetch(cache_key, expires_in: 10.minutes) do
       followee_ids = @user.followees.pluck(:id)
 
       sorted_sleep_records = SleepRecord
-                              .select("*, (clock_out - clock_in) AS sleep_duration")
                               .where(user_id: followee_ids)
-                              .where("clock_out IS NOT NULL")
-                              .where("clock_out >= ?", 7.days.ago)
+                              .where.not(clock_out: nil)
+                              .where(clock_out: start_of_last_week..end_of_last_week)
                               .order(duration: :desc)
 
       pagy(sorted_sleep_records)

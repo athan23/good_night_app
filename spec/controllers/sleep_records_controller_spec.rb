@@ -91,6 +91,16 @@ RSpec.describe SleepRecordsController, type: :controller do
       records = json_response["records"]
       expect(records.size).to be <= Pagy::DEFAULT[:limit]
 
+      start_of_last_week = 1.week.ago.beginning_of_week
+      end_of_last_week = 1.week.ago.end_of_week
+
+      # Check if sleep records are from the previous week
+      records.each do |record|
+        clock_out = Time.parse(record["clock_out"])
+        expect(clock_out).to be >= start_of_last_week
+        expect(clock_out).to be <= end_of_last_week
+      end
+
       # Check if sleep records are sorted by sleep duration
       durations = records.map { |r| r["duration"].to_i }
       expect(durations).to eq(durations.sort.reverse)
