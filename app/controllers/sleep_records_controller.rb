@@ -1,12 +1,12 @@
 class SleepRecordsController < ApplicationController
   include Pagy::Backend
 
-  before_action :set_user
+  before_action :set_user, :set_pagy_params
 
   def index
-    cache_key = "user_#{params[:user_id]}_sleep_records_page_#{params[:page]}"
+    cache_key = "user_#{params[:user_id]}_sleep_records_page_#{@page}_limit_#{@limit}"
     @pagy, @sleep_records = Rails.cache.fetch(cache_key, expires_in: 10.minutes) do
-      pagy(@user.sleep_records.order(:created_at))
+      pagy(@user.sleep_records.order(:created_at), page: @page, limit: @limit )
     end
   end
 
@@ -30,7 +30,7 @@ class SleepRecordsController < ApplicationController
   end
 
   def feed
-    cache_key = "user_#{params[:user_id]}_sleep_records_feed_page_#{params[:page]}"
+    cache_key = "user_#{params[:user_id]}_sleep_records_feed_page_#{@page}_limit_#{@limit}"
 
     # To get sleep records from previous week
     start_of_last_week = 1.week.ago.beginning_of_week
@@ -45,7 +45,7 @@ class SleepRecordsController < ApplicationController
                               .where(clock_out: start_of_last_week..end_of_last_week)
                               .order(duration: :desc)
 
-      pagy(sorted_sleep_records)
+      pagy(sorted_sleep_records, page: @page, limit: @limit)
     end
   end
 
@@ -55,5 +55,10 @@ class SleepRecordsController < ApplicationController
     @user = User.find(params[:user_id])
   rescue ActiveRecord::RecordNotFound
     render json: { error: "User not found" }, status: :not_found
+  end
+
+  def set_pagy_params
+    @limit = params[:limit] ? params[:limit].to_i : Pagy::DEFAULT[:items]
+    @page = params[:page] || 1
   end
 end

@@ -53,7 +53,7 @@ RSpec.describe SleepRecordsController, type: :controller do
     end
 
     it "returns all sleep records of a user" do
-      get :index, params: { format: :json, user_id: user.id, page: 3 }
+      get :index, params: { format: :json, user_id: user.id, page: 3, limit: 10 }
 
       json_response = JSON.parse(response.body)
       expect(response).to have_http_status(:ok)
