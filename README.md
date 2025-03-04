@@ -46,7 +46,21 @@ Use `sqlite3` as the database for Active Record
         - `page`
         - `limit`
     - Example
-        - `localhost:3000/sleep_records/feed?user_id=1&limit=10&page=1`
+        - `localhost:3000/sleep_records?user_id=1&limit=10&page=1`
+
+- `POST /follow`
+    - Params
+        - `follower_id`
+        - `followee_id`
+    - Example
+        - `localhost:3000/follow?follower_id=1&followee_id=2`
+
+- `POST /unfollow`
+    - Params
+        - `follower_id`
+        - `followee_id`
+    - Example
+        - `localhost:3000/unfollow?follower_id=1&followee_id=2`
 
 ### Performance strategy
 - Indexing `user_id` in `sleep_records` table. This helps with lookup on records based on user_id.
